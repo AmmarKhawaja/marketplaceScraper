@@ -2,9 +2,11 @@ import requests
 import random
 import re
 from datetime import date
+import string
+from bs4 import BeautifulSoup
 
 def get_raw_text(url='test'):
-    proxies = ['http://159.203.3.234', 'http://164.132.170.100', 'http://146.59.2.185', 'http://137.74.65.101', ] 
+    proxies = ['http://51.15.242.202', 'http://47.74.152.29', 'http://134.209.29.120', 'http://162.223.94.164', 'http://167.71.5.83', 'http://209.97.150.167', 'http://20.111.54.16', 'http://20.210.113.32', 'http://94.100.26.202'] 
     proxy = {'http': random.choice(proxies)} 
     headers_list = [{ 
         'authority': 'httpbin.org', 
@@ -23,46 +25,70 @@ def get_raw_text(url='test'):
     headers = random.choice(headers_list) 
     return requests.get(url, headers=headers, proxies=proxy).text
 
-locations = {'Columbia, MD': '103106366396503', 'Washington, DC': 'dc', 'Alexandria, VA': '109360339083522', 'Virginia Beach, VA': 'virginiabeach', 'Richmond, VA': 'richmond', 'Philadelphia, PA': 'philly', 'Baltimore, MD': 'baltimore', 'New York City, NY': 'nyc', 'Rochester, NY': 'rochester', 'Columbus, OH': 'columbus', 'Cleveland, OH': 'cleveland', 'York, PA': '108944152458332', 'Dover, DE': '112348422111140'}
-products = ['Kawasaki Ninja 300', 'Yamaha R3', 'Yamaha R6', 'Onewheel Pint', 'Onewheel XR', 'Onewheel GT', 'Snowboard', 'Skis', 'Miata', ]
-f = open('data.txt', 'a')
+p_file = open('products.txt', 'r')
+p_lines = p_file.readlines()
+existing_products = []
+for l in p_lines:
+    existing_products.append(l.replace("\n", "").strip())
+
+new_p = open('products.txt', 'a')
+for i in range(0):
+    r_string = ''.join(random.choice(string.ascii_letters) for _ in range(random.randint(1, 3)))
+    url = 'https://www.facebook.com/marketplace/nyc/search?query=' + r_string
+    text = get_raw_text(url)
+    soup = BeautifulSoup(text, 'html.parser')
+    p = soup.find_all("span", class_="x1lliihq x6ikm8r x10wlt62 x1n2onr6")
+    for i in p:
+        if i.text not in existing_products:
+            new_p.write('{}\n'.format(i.text))
+
+p_file = open('products.txt', 'r')
+p_lines = p_file.readlines()
+products = []
+for l in p_lines:
+    products.append(l.replace("\n", "").strip())
+l = open('locations.txt')
+l_lines = l.readlines()
+locations = {}
+for l in l_lines:
+    l_parse = re.search(r'^(.*),(.*)', l)
+    locations[l_parse.group(1)] = l_parse.group(2)
+f = open('data' + str(date.today()) + '.txt', 'w')
 
 for product in products:
-    for location in locations:
-        url = 'https://www.facebook.com/marketplace/' + locations[location] + '/search?query=' + product.replace(' ', '%20')
+    prices = []
+    print("-")
+    for location in locations.keys():
+        url = 'https://www.facebook.com/marketplace/' + locations[location].strip() + '/search?query=' + product.replace(' ', '%20')
     
         text = get_raw_text(url)
+        print(text)
+        prices = re.findall(r'\$[\d]+,?[\d]+', text)[0:15]
         
-        prices = re.findall(r'\$[\d]+,?[\d]+', text)[0:12]
-        miles = re.findall(r'[\d]+[.\d]?[K]? miles', text)[0:12]
-
         average = 0
         for price in prices:
             price = int(price.replace('$', '').replace(',', ''))
             average += price
-        average /= len(prices)
+        if len(prices) != 0:
+            average /= len(prices)
         average = round(average, 2)
 
-        # for p in range(len(prices)):
-        #     price = int(prices[p].replace('$', '').replace(',', ''))
-        #     if price < 0.6 * average or price > 2.0 * average:
-        #         prices.pop(price)
         for p in prices:
             price = int(p.replace('$', '').replace(',', ''))
-            if price < 0.6 * average or price > 1.5 * average:
+            if price < 0.5 * average or price > 2.0 * average:
                 prices.remove(p)
 
         average = 0
         for price in prices:
             price = int(price.replace('$', '').replace(',', ''))
             average += price
-        average /= len(prices)
+        if len(prices) != 0:
+            average /= len(prices)
         average = round(average, 2)
 
-        summary = ("\n{} -- {}, {}. Average: ${}".format(date.today(), product, location, average))
+        summary = ("\n{}, {}, {}".format(product, location, average))
 
-        print(summary)
-        print(prices)
-        print(miles)
         f.write(summary + '\n' + ', '.join(prices) + '\n')
+        
     f.write("-------------------------")
+f.close()

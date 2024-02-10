@@ -1,0 +1,13 @@
+Columbia, MD, 103106366396503
+Washington, DC, dc
+Alexandria, VA, 109360339083522
+Virginia Beach, VA, virginiabeach
+Richmond, VA, richmond
+Philadelphia, PA, philly
+Baltimore, MD, baltimore
+New York City, NY, nyc 
+Rochester, NY, rochester
+Columbus, OH, columbus
+Cleveland, OH, cleveland
+York, PA, 108944152458332
+Dover, DE, 112348422111140
