@@ -27,7 +27,7 @@ def get_raw_text(url='test'):
         'sec-fetch-dest': 'empty',
         'sec-fetch-mode': 'cors',
         'sec-fetch-site': 'cross-site',
-        'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36 Edg/101.0.1210.47',
+        'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Edg/101.0.1210.47',
     }] 
     return requests.request('GET', url, headers=random.choice(headers_list), verify=False, proxies=proxies).text
 
@@ -77,6 +77,9 @@ for product in products:
         url = 'https://www.facebook.com/marketplace/' + locations[location].strip() + '/search?query=' + product.replace(' ', '%20')
     
         text = get_raw_text(url)
+        
+        if len(text) < 30:
+            raise Exception("PROXY: Proxy is not working.")
         
         prices = re.findall(r'\$[\d]+,?[\d]+', text)[0:15]
         
