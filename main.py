@@ -5,6 +5,7 @@ import string
 from bs4 import BeautifulSoup
 import gpt
 import scraper
+import parse
 
 gpt.setup()
 scraper.setup()
@@ -19,13 +20,12 @@ new_p = open('products.txt', 'a', encoding='utf-8')
 vendors = ['Toyota', 'Volkswagen', 'Ford', 'Chevrolet', 'Honda', 'Nissan', 'BMW', 'Mercedes-Benz', 'Audi', 'Tesla', 'Hyundai', 'Kia', 'Subaru', 'Porsche', 
 'Volvo', 'Mazda', 'Honda', 'Jeep', 'Lexus', 'Land Rover', 'Ram', 'Kawasaki', 'Yamaha', 'Harley Davidson']
 temp_urls = ['https://www.facebook.com/marketplace/nyc/search?query=', 'https://www.facebook.com/marketplace/columbus/search?query=', 'https://www.facebook.com/marketplace/dc/search?query=']
-for i in range(0):
+for i in range(1):
     r_string = ''.join(random.choice(string.ascii_letters) for _ in range(random.randint(2, 5)))
     url = random.choice(temp_urls) + random.choice(vendors) + ' ' + r_string
     text = scraper.get_raw_text(url)
     soup = BeautifulSoup(text, 'html.parser')
-    p = soup.find_all('span', class_='x1lliihq x6ikm8r x10wlt62 x1n2onr6')
-    for i in p:
+    for i in parse.get_new_products(text):
         if ctr > 900:
             break
         if i.text not in existing_products and len(i.text) < 30 and len(i.text) > 10 and 'yes' in gpt.request(i.text).lower():
@@ -65,7 +65,7 @@ for product in products:
         if len(text) < 30:
             raise Exception("PROXY: Proxy is not working.")
         
-        prices = re.findall(r'\$[\d]+,?[\d]+', text)[0:15]
+        prices = parse.get_product_prices(text)
         
         average = 0
         for price in prices:
