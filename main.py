@@ -6,7 +6,7 @@ import string
 from bs4 import BeautifulSoup
 from secret import USER, PASS
 from urllib3.exceptions import InsecureRequestWarning
-
+import gpt
 
 def get_raw_text(url='test'):
     proxies = {
@@ -32,23 +32,34 @@ def get_raw_text(url='test'):
     return requests.request('GET', url, headers=random.choice(headers_list), verify=False, proxies=proxies).text
 
 requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
+gpt.setup()
 
 p_file = open('products.txt', 'r', encoding='utf-8')
 p_lines = p_file.readlines()
 existing_products = []
 for l in p_lines:
     existing_products.append(l.replace("\n", "").strip())
-
+ctr = 0
 new_p = open('products.txt', 'a', encoding='utf-8')
-for i in range(0):
-    r_string = ''.join(random.choice(string.ascii_letters) for _ in range(random.randint(1, 3)))
-    url = 'https://www.facebook.com/marketplace/nyc/search?query=' + r_string
+vendors = ['Toyota', 'Volkswagen', 'Ford', 'Chevrolet', 'Honda', 'Nissan', 'BMW', 'Mercedes-Benz', 'Audi', 'Tesla', 'Hyundai', 'Kia', 'Subaru', 'Porsche', 
+'Volvo', 'Mazda', 'Honda', 'Jeep', 'Lexus', 'Land Rover', 'Ram', 'Kawasaki', 'Yamaha', 'Harley Davidson']
+temp_urls = ['https://www.facebook.com/marketplace/nyc/search?query=', 'https://www.facebook.com/marketplace/columbus/search?query=', 'https://www.facebook.com/marketplace/dc/search?query=']
+for i in range(1000):
+    r_string = ''.join(random.choice(string.ascii_letters) for _ in range(random.randint(2, 5)))
+    url = random.choice(temp_urls) + random.choice(vendors) + ' ' + r_string
     text = get_raw_text(url)
     soup = BeautifulSoup(text, 'html.parser')
-    p = soup.find_all("span", class_="x1lliihq x6ikm8r x10wlt62 x1n2onr6")
+    p = soup.find_all('span', class_='x1lliihq x6ikm8r x10wlt62 x1n2onr6')
     for i in p:
-        if i.text not in existing_products:
-            new_p.write('{}\n'.format(i.text))
+        if ctr > 900:
+            break
+        if i.text not in existing_products and len(i.text) < 30 and len(i.text) > 10 and 'yes' in gpt.request(i.text).lower():
+            print(i.text)
+            print('------------------------------')
+            new_p.write('{}\n'.format(i.text.lower()))
+            ctr += 1
+
+exit()
 
 p_file = open('products.txt', 'r', encoding='utf-8')
 p_lines = p_file.readlines()
