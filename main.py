@@ -48,7 +48,7 @@ for l in l_lines:
     l_parse = re.search(r'^(.*),(.*)', l)
     locations[l_parse.group(1)] = l_parse.group(2)
 
-csv_file = open('data/' + str(date.today()) + '.csv', 'w', newline='', encoding='utf-8')
+csv_file = open('data/' + str(date.today()) + '.csv', 'r+', newline='', encoding='utf-8')
 csv_writer_dict = csv.DictWriter(csv_file, fieldnames=['NAME', 'PRICE', 'MILES'])
 csv_writer_list = csv.writer(csv_file)
 csv_writer_dict.writeheader()
@@ -81,7 +81,7 @@ for product in products:
         for get_product in get_products:
             if get_product['PRICE'] > 0:
                 price = get_product['PRICE']
-                if price < 0.5 * average or price > 2.0 * average:
+                if price < 0.25 * average or price > 4.0 * average:
                     get_product['PRICE'] = -2
         average = 0
         for get_product in get_products:
@@ -90,8 +90,12 @@ for product in products:
         if len(get_products) != 0:
             average /= len(get_products)
         average = round(average, 2)
-        print(get_products)
+        
+        csv_reader = csv.reader(csv_file)
+        for row in csv_reader:
+            if row == [get_product['NAME'], get_product['PRICE'], get_product['MILES']]:
+                continue
         csv_writer_list.writerows([['-', str(product), str(location), str(average)]])
         csv_writer_dict.writerows(get_products)
-
+        
 csv_file.close()
