@@ -18,9 +18,9 @@ for l in p_lines:
     existing_products.append(l.replace("\n", "").strip())
 ctr = 0
 new_p = open('products.txt', 'a', encoding='utf-8')
-vendors = ['Toyota', 'Volkswagen', 'Ford', 'Chevrolet', 'Honda', 'Nissan', 'BMW', 'Mercedes-Benz', 'Audi', 'Tesla', 'Hyundai', 'Kia', 'Subaru', 'Porsche', 
-'Volvo', 'Mazda', 'Honda', 'Jeep', 'Lexus', 'Land Rover', 'Ram', 'Kawasaki', 'Yamaha', 'Harley Davidson']
-temp_urls = ['https://www.facebook.com/marketplace/nyc/search?query=', 'https://www.facebook.com/marketplace/columbus/search?query=', 'https://www.facebook.com/marketplace/dc/search?query=']
+vendors = ['Toyota', 'Volkswagen', 'Ford', 'Chevrolet', 'Honda', 'Nissan', 'BMW', 'Mercedes-Benz', 'Audi', 'Tesla', 'Hyundai', 'Kia', 'Subaru', 'Porsche', 'Cadillac', 
+'Volvo', 'Mazda', 'Honda', 'Jeep', 'Lexus', 'Land Rover', 'Ram', 'Kawasaki', 'Yamaha', 'Mitsubishi']
+temp_urls = ['https://www.facebook.com/marketplace/sanfrancisco/search?query=', 'https://www.facebook.com/marketplace/dallas/search?query=', 'https://www.facebook.com/marketplace/dc/search?query=']
 for i in range(0):
     r_string = ''.join(random.choice(string.ascii_letters) for _ in range(random.randint(2, 5)))
     url = random.choice(temp_urls) + random.choice(vendors) + ' ' + r_string

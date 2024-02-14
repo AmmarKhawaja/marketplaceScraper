@@ -1,10 +1,15 @@
 Washington, DC, dc
 Richmond, VA, richmond
+Virginia Beach, VA, virginiabeach
 Orlando, FL, orlando
+Jacksonville, FL, jacksonville
 Philadelphia, PA, philly
+Pittsburgh, PA, pittsburgh
 Baltimore, MD, baltimore
 New York City, NY, nyc 
 Atlanta, GA, atlanta
-Columbus, OH, columbus
+Newark, NJ, 108398645850982
+Cleveland, OH, cleveland
+Charlotte, NC, charlotte
+Nashville, TN, nashville
 Dallas, TX, dallas
-San Francisco, CA, sanfrancisco
