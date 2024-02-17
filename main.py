@@ -8,6 +8,12 @@ import scraper
 import extract
 import csv
 
+#TODO:
+#   Record car years
+#   Fix duplicate csv headers
+#   Track proxy usage
+#   Create branch for PythonAnywhere (run one location per day)
+
 gpt.setup()
 scraper.setup()
 

@@ -1,10 +1,10 @@
 import openai
-import secret as s
+from secret import CHATGPT_API_KEY
 
 VERSION = 'gpt-3.5-turbo-0125'
 
 def setup():
-    openai.api_key = s.CHATGPT_API_KEY
+    openai.api_key = CHATGPT_API_KEY
 
 def request(message='Respond with 0.'):
     completion = openai.ChatCompletion.create(
