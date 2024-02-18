@@ -13,6 +13,7 @@ import csv
 #   Fix duplicate csv headers
 #   Track proxy usage
 #   Create branch for PythonAnywhere (run one location per day)
+#   http://botwhatismyipaddress.com/
 
 gpt.setup()
 scraper.setup()
@@ -54,7 +55,10 @@ for l in l_lines:
     l_parse = re.search(r'^(.*),(.*)', l)
     locations[l_parse.group(1)] = l_parse.group(2)
 
-csv_file = open('data/' + str(date.today()) + '.csv', 'r+', newline='', encoding='utf-8')
+file_path = 'data/' + str(date.today()) + '.csv'
+f = open(file_path, 'w', newline='', encoding='utf-8')
+f.close()
+csv_file = open(file_path, 'r+', newline='', encoding='utf-8')
 csv_writer_dict = csv.DictWriter(csv_file, fieldnames=['NAME', 'PRICE', 'MILES'])
 csv_writer_list = csv.writer(csv_file)
 csv_writer_dict.writeheader()
@@ -71,12 +75,16 @@ for product in products:
         url = 'https://www.facebook.com/marketplace/' + locations[location].strip() + '/search?query=' + product.replace(' ', '%20')
     
         text = scraper.get_raw_text(url)
+        #print(text)
+        #f = open('err1.txt', 'w', encoding='utf-8')
+        #f.write(text)
 
         if len(text) < 30:
             raise Exception("PROXY: Proxy is not working.")
-        
+        #print(text)
+        #exit()
         get_products = extract.get_products_car(text)
-        
+        #print(get_products)
         average = 0
         for get_product in get_products:
             if get_product['PRICE'] > 0:
@@ -84,6 +92,10 @@ for product in products:
         if len(get_products) != 0:
             average /= len(get_products)
         average = round(average, 2)
+
+        if not average:
+            continue
+
         for get_product in get_products:
             if get_product['PRICE'] > 0:
                 price = get_product['PRICE']
