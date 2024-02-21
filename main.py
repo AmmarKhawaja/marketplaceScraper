@@ -14,6 +14,7 @@ import csv
 #   Track proxy usage
 #   Create branch for PythonAnywhere (run one location per day)
 #   http://botwhatismyipaddress.com/
+#   Switch from invalid scrape schema
 
 gpt.setup()
 scraper.setup()
@@ -59,7 +60,7 @@ file_path = 'data/' + str(date.today()) + '.csv'
 f = open(file_path, 'w', newline='', encoding='utf-8')
 f.close()
 csv_file = open(file_path, 'r+', newline='', encoding='utf-8')
-csv_writer_dict = csv.DictWriter(csv_file, fieldnames=['NAME', 'PRICE', 'MILES'])
+csv_writer_dict = csv.DictWriter(csv_file, fieldnames=['NAME', 'YEAR', 'PRICE', 'MILES'])
 csv_writer_list = csv.writer(csv_file)
 csv_writer_dict.writeheader()
 
@@ -75,16 +76,12 @@ for product in products:
         url = 'https://www.facebook.com/marketplace/' + locations[location].strip() + '/search?query=' + product.replace(' ', '%20')
     
         text = scraper.get_raw_text(url)
-        #print(text)
-        #f = open('err1.txt', 'w', encoding='utf-8')
-        #f.write(text)
+        f = open('err1.txt', 'w', encoding='utf-8')
+        f.write(text)
 
         if len(text) < 30:
             raise Exception("PROXY: Proxy is not working.")
-        #print(text)
-        #exit()
-        get_products = extract.get_products_car(text)
-        #print(get_products)
+        get_products = extract.get_products_car_schema2(text)
         average = 0
         for get_product in get_products:
             if get_product['PRICE'] > 0:
@@ -111,7 +108,7 @@ for product in products:
         
         csv_reader = csv.reader(csv_file)
         for row in csv_reader:
-            if row == [get_product['NAME'], get_product['PRICE'], get_product['MILES']]:
+            if row == [get_product['NAME'], get_product['YEAR'], get_product['PRICE'], get_product['MILES']]:
                 continue
         csv_writer_list.writerows([['-', str(product), str(location), str(average)]])
         csv_writer_dict.writerows(get_products)
