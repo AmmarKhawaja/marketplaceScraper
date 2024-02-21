@@ -58,7 +58,6 @@ def get_products_car_schema2(text):
             else:
                 miles = int(miles[0].replace('.', '').replace('K', '00').replace('M', '000000'))
             products.append({"NAME": name, "YEAR": year, "PRICE": price, "MILES": miles})
-            print(products)
     return products
             
 
