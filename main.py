@@ -65,11 +65,10 @@ for l in range(len(l_lines)):
                 break
     else:
         locations[l_parse.group(1)] = l_parse.group(2)
-print(locations)
     
 file_path = file_prefix + 'data/' + str(date.today()) + '.csv'
 newfile = False
-if not os.path.isfile(file_path):
+if not os.path.isfile(file_path) or not PYTHONANYWHERE:
     f = open(file_path, 'w', newline='', encoding='utf-8')
     f.close()
     newfile = True

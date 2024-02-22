@@ -2,7 +2,7 @@ import pandas as pd
 from datetime import date, datetime
 import matplotlib.pyplot as plt
 
-file_path = 'data/' + '2024-02-13' + '.csv'
+file_path = 'data/' + str(date.today()) + '.csv'
 
 df = pd.read_csv(file_path)
 
