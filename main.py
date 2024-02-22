@@ -9,7 +9,7 @@ import extract
 import csv
 import os
 
-PYTHONANYWHERE = True
+PYTHONANYWHERE = False
 
 #TODO:
 #   DONE Record car years
@@ -52,13 +52,21 @@ p_lines = p_file.readlines()
 products = []
 for l in p_lines:
     products.append(l.replace("\n", "").strip())
+
 l = open(file_prefix + 'locations.txt', encoding='utf-8')
 l_lines = l.readlines()
 locations = {}
-for l in l_lines:
-    l_parse = re.search(r'^(.*),(.*)', l)
-    locations[l_parse.group(1)] = l_parse.group(2)
-
+for l in range(len(l_lines)):
+    l_parse = re.search(r'^(.*),(.*)', l_lines[l])
+    if PYTHONANYWHERE:
+        with open(file_prefix + 'track.txt', 'r', encoding='utf-8') as t:
+            if l == int(t.readline().strip()):
+                locations[l_parse.group(1)] = l_parse.group(2)
+                break
+    else:
+        locations[l_parse.group(1)] = l_parse.group(2)
+print(locations)
+    
 file_path = file_prefix + 'data/' + str(date.today()) + '.csv'
 newfile = False
 if not os.path.isfile(file_path):
@@ -137,3 +145,12 @@ for product in products:
         csv_writer_dict.writerows(get_products)
         
 csv_file.close()
+if PYTHONANYWHERE:
+    with open(file_prefix + 'track.txt', 'r', encoding='utf-8') as t:
+        num = int(t.readline().strip())
+    with open(file_prefix + 'track.txt', 'w', encoding='utf-8') as t:
+        if num == 14:
+            num = 0
+        else:
+            num += 1
+        t.write(str(num))
