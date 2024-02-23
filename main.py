@@ -15,7 +15,7 @@ PYTHONANYWHERE = False
 #   DONE Record car years
 #   DONE Create version for PythonAnywhere (run one location per day)
 #   DONE Switch from invalid scrape schema
-#   Plot data
+#   DONE Plot data
 
 gpt.setup()
 scraper.setup()
