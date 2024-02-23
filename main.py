@@ -115,5 +115,6 @@ for product in products:
                 continue
         csv_writer_list.writerows([['-', str(product), str(location), str(average)]])
         csv_writer_dict.writerows(get_products)
+        csv_file.flush()
         
 csv_file.close()
