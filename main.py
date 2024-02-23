@@ -20,7 +20,7 @@ PYTHONANYWHERE = False
 gpt.setup()
 scraper.setup()
 
-file_prefix = ['./', './'][PYTHONANYWHERE]
+file_prefix = ['/home/AmmarKhawaja/marketplaceScraper/', '/home/AmmarKhawaja/marketplaceScraper/'][PYTHONANYWHERE]
 
 p_file = open(file_prefix + 'products.txt', 'r', encoding='utf-8')
 p_lines = p_file.readlines()
@@ -84,6 +84,7 @@ if newfile:
 average = 1
 ctr = 0
 err_ctr = 0
+p_err_ctr = 0
 
 for product in products:
     ctr += 1
@@ -98,7 +99,11 @@ for product in products:
         #f.write(text)
 
         if len(text) < 30:
-            raise Exception("PROXY: Proxy is not working.")
+            p_err_ctr += 1
+            if p_err_ctr > 15:
+                raise Exception("PROXY: Proxy is not working.")
+        else:
+            p_err_ctr = 0
         get_products = extract.get_products_car_schema2(text)
 
         if not average:
@@ -138,11 +143,14 @@ for product in products:
         
         csv_reader = csv.reader(csv_file)
         for row in csv_reader:
-            if row == [get_product['NAME'], get_product['YEAR'], get_product['PRICE'], get_product['MILES']]:
+            if any('\0' in field for field in row):
                 continue
+            if row == [get_product['NAME'], get_product['YEAR'], get_product['PRICE'], get_product['MILES']]:
+                get_products.remove(get_product)
         csv_writer_list.writerows([['-', str(product), str(location), str(average)]])
         csv_writer_dict.writerows(get_products)
-        
+        csv_file.flush()
+
 csv_file.close()
 if PYTHONANYWHERE:
     with open(file_prefix + 'track.txt', 'r', encoding='utf-8') as t:
