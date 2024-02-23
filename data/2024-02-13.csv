@@ -1,6 +1,4 @@
-NAME,PRICE,MILES
-NAME,PRICE,MILES
-NAME,PRICE,MILES
+NAME,PRICE,MILES,IGNORE
 -,kawasaki ninja 300,"Washington, DC",2995.38
 2014 Kawasaki ninja,3800,-1
 2021 Kawasaki ninja,4250,-1
@@ -4323,8 +4321,7 @@ acura tl 2002 parts,-2,-1
 2006 Acura tl 3.2 Sedan 4D,1500,-1
 2002 Acura tl 3.2 Type S Sedan 4D,3290,-1
 2002 Acura tl,600,-1
-"2005 ACURA TL
-(Parts only)",-2,-1
+2005 ACURA TL(Parts only),-2,-1
 2002 Acura tl 3.2 Type S Sedan 4D,1111,-1
 2002 Acura tl 3.2 Type S Sedan 4D,2200,-1
 Acura 3.2 TL V6 car (2003),1500,-1
