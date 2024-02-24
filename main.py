@@ -1,6 +1,7 @@
 import random
 import re
 from datetime import date, datetime
+import time
 import string
 from bs4 import BeautifulSoup
 import gpt
@@ -8,6 +9,8 @@ import scraper
 import extract
 import csv
 import os
+
+print('RUNNING')
 
 PYTHONANYWHERE = False
 
@@ -17,10 +20,21 @@ PYTHONANYWHERE = False
 #   DONE Switch from invalid scrape schema
 #   DONE Plot data
 
+file_prefix = ['./', './'][PYTHONANYWHERE]
+
+while PYTHONANYWHERE:
+    with open(file_prefix + 'track.txt', 'r', encoding='utf-8') as t:
+        if t.readline() == str(date.today()):
+            print('sleep3')
+            time.sleep(3 * 7 * 24 * 60 * 60)
+    if date.today().day != 24:
+        print('sleep1')
+        time.sleep(60 * 60)
+    else:
+        break
+
 gpt.setup()
 scraper.setup()
-
-file_prefix = ['/home/AmmarKhawaja/marketplaceScraper/', '/home/AmmarKhawaja/marketplaceScraper/'][PYTHONANYWHERE]
 
 p_file = open(file_prefix + 'products.txt', 'r', encoding='utf-8')
 p_lines = p_file.readlines()
@@ -29,24 +43,23 @@ for l in p_lines:
     existing_products.append(l.replace("\n", "").strip())
 ctr = 0
 new_p = open(file_prefix + 'products.txt', 'a', encoding='utf-8')
-vendors = ['Toyota', 'Volkswagen', 'Ford', 'Chevrolet', 'Honda', 'Nissan', 'BMW', 'Audi', 'Hyundai', 'Kia', 'Porsche', 
-'Volvo', 'Mazda', 'Honda', 'Jeep', 'Lexus', 'Mitsubishi']
-temp_urls = ['https://www.facebook.com/marketplace/sanfrancisco/search?query=', 'https://www.facebook.com/marketplace/dallas/search?query=', 'https://www.facebook.com/marketplace/dc/search?query=']
+vendors = ['Toyota', 'Ford', 'Chevrolet', 'Honda', 'Nissan', 'BMW', 'Audi', 'Hyundai', 'Kia', 'Porsche', 'Mazda', 'Honda', 'Mitsubishi']
+temp_urls = ['https://www.facebook.com/marketplace/sanfrancisco/search?query=', 'https://www.facebook.com/marketplace/cleveland/search?query=']
 for i in range(0):
     r_string = ''.join(random.choice(string.ascii_letters) for _ in range(random.randint(2, 5)))
-    url = random.choice(temp_urls) + random.choice(vendors) + ' ' + r_string
+    url = random.choice(temp_urls) + 'car' + ' ' + r_string
     text = scraper.get_raw_text(url)
     
     soup = BeautifulSoup(text, 'html.parser')
-    for i in extract.get_new_products(text):
-        if ctr > 900:
+    for i in [d.get('NAME') for d in extract.get_products_car_schema2(text)]:
+        if ctr > 213:
             break
-        if i.text not in existing_products and len(i.text) < 30 and len(i.text) > 10 and 'yes' in gpt.request(i.text).lower():
-            print(i.text)
+        if i not in existing_products and len(i) < 30 and len(i) > 10 and 'yes' in gpt.request(i).lower():
+            print(i)
             print('------------------------------')
-            new_p.write('{}\n'.format(i.text.lower()))
+            new_p.write('{}\n'.format(i.lower()))
             ctr += 1
-
+#exit()
 p_file = open(file_prefix + 'products.txt', 'r', encoding='utf-8')
 p_lines = p_file.readlines()
 products = []
@@ -58,25 +71,17 @@ l_lines = l.readlines()
 locations = {}
 for l in range(len(l_lines)):
     l_parse = re.search(r'^(.*),(.*)', l_lines[l])
-    if PYTHONANYWHERE:
-        with open(file_prefix + 'track.txt', 'r', encoding='utf-8') as t:
-            if l == int(t.readline().strip()):
-                locations[l_parse.group(1)] = l_parse.group(2)
-                break
-    else:
-        locations[l_parse.group(1)] = l_parse.group(2)
+    locations[l_parse.group(1)] = l_parse.group(2)
     
 file_path = file_prefix + 'data/' + str(date.today()) + '.csv'
 newfile = False
-if not os.path.isfile(file_path) or not PYTHONANYWHERE:
+if not os.path.isfile(file_path):
     f = open(file_path, 'w', newline='', encoding='utf-8')
     f.close()
     newfile = True
 csv_file = open(file_path, 'r+', newline='', encoding='utf-8')
 csv_writer_dict = csv.DictWriter(csv_file, fieldnames=['NAME', 'YEAR', 'PRICE', 'MILES'])
 csv_writer_list = csv.writer(csv_file)
-if PYTHONANYWHERE:
-    csv_file.seek(0, 2)
 if newfile:
     csv_writer_dict.writeheader()
     print("FILE: New file created.")
@@ -89,14 +94,12 @@ p_err_ctr = 0
 for product in products:
     ctr += 1
     if average:
-        print(str((ctr / len(p_lines)) * 100)[0:5] + '%')
-    print(str(datetime.now())[0:19])
+        print(str((ctr / len(p_lines)) * 100)[0:5] + '%', flush=True)
+    print(str(datetime.now())[0:19], flush=True)
     for location in locations.keys():
         url = 'https://www.facebook.com/marketplace/' + locations[location].strip() + '/search?query=' + product.replace(' ', '%20')
     
         text = scraper.get_raw_text(url)
-        #f = open('err1.txt', 'w', encoding='utf-8')
-        #f.write(text)
 
         if len(text) < 30:
             p_err_ctr += 1
@@ -141,7 +144,7 @@ for product in products:
             average /= len(get_products)
         average = round(average, 2)
         
-        csv_reader = csv.reader(csv_file)
+        csv_reader = csv.reader((line.replace('\0', '') for line in csv_file))
         for row in csv_reader:
             if any('\0' in field for field in row):
                 continue
@@ -150,14 +153,8 @@ for product in products:
         csv_writer_list.writerows([['-', str(product), str(location), str(average)]])
         csv_writer_dict.writerows(get_products)
         csv_file.flush()
-
+        
 csv_file.close()
 if PYTHONANYWHERE:
-    with open(file_prefix + 'track.txt', 'r', encoding='utf-8') as t:
-        num = int(t.readline().strip())
     with open(file_prefix + 'track.txt', 'w', encoding='utf-8') as t:
-        if num == 14:
-            num = 0
-        else:
-            num += 1
-        t.write(str(num))
+        t.write(str(date.today()))

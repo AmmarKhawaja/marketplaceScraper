@@ -15,7 +15,7 @@ def get_products_car_schema1(text):
     for wrapper in wrappers:
         sub_soup = BeautifulSoup(str(wrapper), 'html.parser')
         if sub_soup.find('span', class_='x78zum5 x1q0g3np x1iorvi4 x4uap5 xjkvuk6 xkhd6sd'):
-            name = sub_soup.find('span', class_='x1lliihq x6ikm8r x10wlt62 x1n2onr6').text
+            name = sub_soup.find('span', class_='x1lliihq x6ikm8r x10wlt62 x1n2onr6').text.replace(',', '')
         else:
             name = 'n/a'
         if len(name) < 40:
@@ -56,7 +56,10 @@ def get_products_car_schema2(text):
             if not miles:
                 miles = -1
             else:
-                miles = int(miles[0].replace('.', '').replace('K', '00').replace('M', '000000'))
+                if '.' in miles[0]:
+                    miles = int(miles[0].replace('.', '').replace('K', '00').replace('M', '00000'))
+                else:
+                    miles = int(miles[0].replace('K', '000').replace('M', '000000'))
             products.append({"NAME": name, "YEAR": year, "PRICE": price, "MILES": miles})
     return products
             

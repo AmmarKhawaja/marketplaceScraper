@@ -131,13 +131,11 @@ volvo turbo
 2008 lexus ls 600h l sedan 4d
 2010 lexus es 350 sedan 4d
 2002 lexus es 300 sedan 4d
-1998 lexus es 300 sedan 4d
 2007 lexus is 250 sedan 4d
 2008 lexus gs 350 sedan 4d
 2009 lexus gs 350 sedan 4d
 2003 lexus es 300 sedan 4d
 2004 lexus es 330 sedan 4d
-2001 lexus es 300 sedan 4d
 2008 lexus gs 450h sedan 4d
 2024 subaru ascent
 2007 subaru forrester
@@ -883,8 +881,6 @@ ls 460 lexus 2007
 2013 lexus gs
 2005 lexus ls 430
 2007 lexus es
-1999 lexus es 300 sedan 4d
-1997 lexus es 300 sedan 4d
 2011 lexus es
 2018 lexus ls 500 artisan
 2019 lexus ls 500 sedan 4d
@@ -961,12 +957,6 @@ cadillac car stuff
 1999 lexus rx300 awd
 2014 lexus es300h
 lexus es ￼300 2006
-2014 lexus es350
-1999 lexus ls
-2003 lexus es
-2009 lexus es
-2014 lexus es
-2015 lexus es 350 sedan 4d
 2007 lexus rx350
 2012 lexus es
 1999 lexus es300
