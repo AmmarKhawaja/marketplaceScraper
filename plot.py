@@ -10,9 +10,9 @@ print(df)
 
 count = df['NAME'].value_counts()
 
-count[1:20].plot(kind='bar', color='blue')
+count[1:50].plot(kind='bar', color='blue')
 
-plt.tick_params(axis='x', labelsize=3)
+plt.tick_params(axis='x', labelsize=5)
 print(count.mean())
 plt.axhline(y=count.mean(), color='red', linestyle='--', label='Average')
 

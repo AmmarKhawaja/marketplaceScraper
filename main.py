@@ -10,7 +10,9 @@ import extract
 import csv
 import os
 
-PYTHONANYWHERE = True
+print('RUNNING')
+
+PYTHONANYWHERE = False
 
 #TODO:
 #   DONE Record car years
@@ -41,24 +43,23 @@ for l in p_lines:
     existing_products.append(l.replace("\n", "").strip())
 ctr = 0
 new_p = open(file_prefix + 'products.txt', 'a', encoding='utf-8')
-vendors = ['Toyota', 'Volkswagen', 'Ford', 'Chevrolet', 'Honda', 'Nissan', 'BMW', 'Audi', 'Hyundai', 'Kia', 'Porsche', 
-'Volvo', 'Mazda', 'Honda', 'Jeep', 'Lexus', 'Mitsubishi']
-temp_urls = ['https://www.facebook.com/marketplace/sanfrancisco/search?query=', 'https://www.facebook.com/marketplace/dallas/search?query=', 'https://www.facebook.com/marketplace/dc/search?query=']
-for i in range(0):
+vendors = ['Toyota', 'Ford', 'Chevrolet', 'Honda', 'Nissan', 'BMW', 'Audi', 'Hyundai', 'Kia', 'Porsche', 'Mazda', 'Honda', 'Mitsubishi']
+temp_urls = ['https://www.facebook.com/marketplace/sanfrancisco/search?query=', 'https://www.facebook.com/marketplace/cleveland/search?query=']
+for i in range(1000):
     r_string = ''.join(random.choice(string.ascii_letters) for _ in range(random.randint(2, 5)))
     url = random.choice(temp_urls) + random.choice(vendors) + ' ' + r_string
     text = scraper.get_raw_text(url)
     
     soup = BeautifulSoup(text, 'html.parser')
-    for i in extract.get_new_products(text):
-        if ctr > 900:
+    for i in [d.get('NAME') for d in extract.get_products_car_schema2(text)]:
+        if ctr > 213:
             break
-        if i.text not in existing_products and len(i.text) < 30 and len(i.text) > 10 and 'yes' in gpt.request(i.text).lower():
+        if i not in existing_products and len(i) < 30 and len(i) > 10 and 'yes' in gpt.request(i).lower():
             print(i.text)
             print('------------------------------')
             new_p.write('{}\n'.format(i.text.lower()))
             ctr += 1
-
+exit()
 p_file = open(file_prefix + 'products.txt', 'r', encoding='utf-8')
 p_lines = p_file.readlines()
 products = []
