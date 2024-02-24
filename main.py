@@ -1,6 +1,7 @@
 import random
 import re
 from datetime import date, datetime
+import time
 import string
 from bs4 import BeautifulSoup
 import gpt
@@ -9,7 +10,7 @@ import extract
 import csv
 import os
 
-PYTHONANYWHERE = False
+PYTHONANYWHERE = True
 
 #TODO:
 #   DONE Record car years
@@ -17,10 +18,21 @@ PYTHONANYWHERE = False
 #   DONE Switch from invalid scrape schema
 #   DONE Plot data
 
+file_prefix = ['./', './'][PYTHONANYWHERE]
+
+while PYTHONANYWHERE:
+    with open(file_prefix + 'track.txt', 'r', encoding='utf-8') as t:
+        if t.readline() == str(date.today()):
+            print('sleep3')
+            time.sleep(3 * 7 * 24 * 60 * 60)
+    if date.today().day != 24:
+        print('sleep1')
+        time.sleep(60 * 60)
+    else:
+        break
+
 gpt.setup()
 scraper.setup()
-
-file_prefix = ['./', './'][PYTHONANYWHERE]
 
 p_file = open(file_prefix + 'products.txt', 'r', encoding='utf-8')
 p_lines = p_file.readlines()
@@ -58,25 +70,17 @@ l_lines = l.readlines()
 locations = {}
 for l in range(len(l_lines)):
     l_parse = re.search(r'^(.*),(.*)', l_lines[l])
-    if PYTHONANYWHERE:
-        with open(file_prefix + 'track.txt', 'r', encoding='utf-8') as t:
-            if l == int(t.readline().strip()):
-                locations[l_parse.group(1)] = l_parse.group(2)
-                break
-    else:
-        locations[l_parse.group(1)] = l_parse.group(2)
+    locations[l_parse.group(1)] = l_parse.group(2)
     
 file_path = file_prefix + 'data/' + str(date.today()) + '.csv'
 newfile = False
-if not os.path.isfile(file_path) or not PYTHONANYWHERE:
+if not os.path.isfile(file_path):
     f = open(file_path, 'w', newline='', encoding='utf-8')
     f.close()
     newfile = True
 csv_file = open(file_path, 'r+', newline='', encoding='utf-8')
 csv_writer_dict = csv.DictWriter(csv_file, fieldnames=['NAME', 'YEAR', 'PRICE', 'MILES'])
 csv_writer_list = csv.writer(csv_file)
-if PYTHONANYWHERE:
-    csv_file.seek(0, 2)
 if newfile:
     csv_writer_dict.writeheader()
     print("FILE: New file created.")
@@ -136,7 +140,7 @@ for product in products:
             average /= len(get_products)
         average = round(average, 2)
         
-        csv_reader = csv.reader(csv_file)
+        csv_reader = csv.reader((line.replace('\0', '') for line in csv_file))
         for row in csv_reader:
             if row == [get_product['NAME'], get_product['YEAR'], get_product['PRICE'], get_product['MILES']]:
                 continue
@@ -146,11 +150,5 @@ for product in products:
         
 csv_file.close()
 if PYTHONANYWHERE:
-    with open(file_prefix + 'track.txt', 'r', encoding='utf-8') as t:
-        num = int(t.readline().strip())
     with open(file_prefix + 'track.txt', 'w', encoding='utf-8') as t:
-        if num == 14:
-            num = 0
-        else:
-            num += 1
-        t.write(str(num))
+        t.write(str(date.today()))
