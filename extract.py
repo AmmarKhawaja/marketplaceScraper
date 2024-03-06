@@ -35,7 +35,7 @@ def get_products_car_schema1(text):
             products.append({"NAME": name, "PRICE": price, "MILES": miles})
     return products
 
-def get_products_car_schema2(text):
+def get_products_car_schema2_FACEBOOK(text, min_year=None, max_year=None, min_price=None, max_price=None, min_miles=None, max_miles=None):
     wrappers = re.findall(r'"node":(.*?)"MarketplaceSearchFeedStoriesEdge"}', text)
     products = []
     for wrapper in wrappers:
@@ -60,8 +60,60 @@ def get_products_car_schema2(text):
                     miles = int(miles[0].replace('.', '').replace('K', '00').replace('M', '00000'))
                 else:
                     miles = int(miles[0].replace('K', '000').replace('M', '000000'))
+            if (min_year != None and year < min_year) or (max_year != None and year > max_year) or (min_price != None and price > min_price) or (max_price != None and price > max_price) or (min_miles != None and miles < min_miles) or (max_miles != None and miles > max_miles):
+                continue
             products.append({"NAME": name, "YEAR": year, "PRICE": price, "MILES": miles})
     return products
             
+# def get_products_car_schema1_AUTOTRADER(text):
+#     wrappers = re.findall(r'"vehicleIdentificationNumber":(.*?),"fuelEfficiency"', text)
+#     products = []
+#     for wrapper in wrappers:
+#         name = re.findall()
 
-        
+def validate(e, type):
+    if not e:
+        if type == 'int':
+            return -1
+        elif type == 'str':
+            return '-1'
+    else:
+        if type == 'int':
+            return int(float(e[0]))
+        elif type == 'str':
+            return str(e[0])
+
+def get_products_car(text, source, min_year=None, max_year=None, min_price=None, max_price=None, min_miles=None, max_miles=None):
+    re_codes = []
+    # wrapper, name, make, model, year, type, color, intcolor, miles, price
+    if source == 'FACEBOOK':
+        re_codes = [r'"node":(.*?)"MarketplaceSearchFeedStoriesEdge"}', r'"custom_title":"(.*?)"', r'^$', r'^$', 
+                    r'(\d{4})', r'^$', r'^$', r'^$', r'"subtitle":"(.*?) miles"', r'"amount":"(.*?)"',]
+    elif source == "AUTOTRADER":
+        re_codes = [r'"vehicleIdentificationNumber":(.*?),"fuelEfficiency"', r'"name":"(.*?)","mpn"', 
+                    r'{"code".*?"name":"(.*?)"}},"model"', r'"model":{"code".*?"name":"(.*?)"},"manufacturer"', 
+                    r'(\d{4})', r'"vehicleEngine":"(.*?)"', r'"color":"(.*?)"', r'"vehicleInteriorColor":"(.*?)"', 
+                    r'"value":"(.*?)"', r'"price":(.*?),']
+
+    wrappers = re.findall(re_codes[0], text)
+    products = []
+    for wrapper in wrappers:
+        name = re.findall(re_codes[1], wrapper)
+        if name and len(name[0]) < 40:
+            name = name[0]
+            make = validate(re.findall(re_codes[2], wrapper), 'str')
+            model = validate(re.findall(re_codes[3], wrapper), 'str')
+            year = validate(re.findall(re_codes[4], name), 'int')
+            type = validate(re.findall(re_codes[5], wrapper), 'str')
+            color = validate(re.findall(re_codes[6], wrapper), 'str')
+            intcolor = validate(re.findall(re_codes[7], wrapper), 'str')
+            miles = validate(re.findall(re_codes[8], wrapper), 'str')
+            if '.' in miles:
+                miles = int(miles.replace('.', '').replace('K', '00').replace('M', '00000').replace(',', ''))
+            else:
+                miles = int(miles.replace('K', '000').replace('M', '000000').replace(',', ''))
+            price = validate(re.findall(re_codes[9], wrapper), 'int')
+            if (min_year != None and year < min_year) or (max_year != None and year > max_year) or (min_price != None and price > min_price) or (max_price != None and price > max_price) or (min_miles != None and miles < min_miles) or (max_miles != None and miles > max_miles):
+                continue
+            products.append({"NAME": name, "MAKE": make, "MODEL": model, "YEAR": year, "TYPE": type, "COLOR": color, "INTCOLOR": intcolor, "MILES": miles, "PRICE": price, 'SOURCE': source})
+    return products

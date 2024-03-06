@@ -1,15 +1,20 @@
-Washington, DC, dc
-Richmond, VA, richmond
-Virginia Beach, VA, virginiabeach
+Washington, DC,dc dc2 dc3
+Richmond, VA,richmond
+Virginia Beach, VA,virginiabeach
 Orlando, FL, orlando
-Jacksonville, FL, jacksonville
-Philadelphia, PA, philly
-Pittsburgh, PA, pittsburgh
-Baltimore, MD, baltimore
-New York City, NY, nyc 
-Atlanta, GA, atlanta
-Newark, NJ, 108398645850982
-Cleveland, OH, cleveland
-Charlotte, NC, charlotte
-Nashville, TN, nashville
-Dallas, TX, dallas
+Jacksonville, FL,jacksonville
+Philadelphia, PA,philly
+Pittsburgh, PA,pittsburgh
+Baltimore, MD,baltimore
+New York City, NY,nyc 
+Atlanta, GA,atlanta
+Newark, NJ,108398645850982
+Cleveland, OH,cleveland
+Charlotte, NC,charlotte
+Nashville, TN,nashville
+Dallas, TX,dallas
+Houston, TX,houston
+Ocean City, DE,112536992090783
+Boston, MA,boston
+Los Angeles, CA,la
+Chicago, IL,chicago

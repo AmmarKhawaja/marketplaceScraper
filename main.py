@@ -9,6 +9,9 @@ import scraper
 import extract
 import csv
 import os
+import sys
+import statistics
+from functools import reduce
 
 print('RUNNING')
 
@@ -19,6 +22,12 @@ PYTHONANYWHERE = False
 #   DONE Create version for PythonAnywhere (run one location per day)
 #   DONE Switch from invalid scrape schema
 #   DONE Plot data
+#   DONE ISSUE: Data is not clean (averages)
+#   ISSUE: Need new csv divider, old one confusing city name, state name
+#   Add more datasource: cars.com, carfax.com, carmax.com, carvana.com
+
+csv.field_size_limit(sys.maxsize)
+# Open the input CSV file
 
 file_prefix = ['./', './'][PYTHONANYWHERE]
 
@@ -43,23 +52,24 @@ for l in p_lines:
     existing_products.append(l.replace("\n", "").strip())
 ctr = 0
 new_p = open(file_prefix + 'products.txt', 'a', encoding='utf-8')
-vendors = ['Toyota', 'Ford', 'Chevrolet', 'Honda', 'Nissan', 'BMW', 'Audi', 'Hyundai', 'Kia', 'Porsche', 'Mazda', 'Honda', 'Mitsubishi']
-temp_urls = ['https://www.facebook.com/marketplace/sanfrancisco/search?query=', 'https://www.facebook.com/marketplace/cleveland/search?query=']
+vendors = ['Toyota', 'Ford', 'Chevrolet', 'Honda', 'Nissan', 'BMW', 'Audi', 'Hyundai', 'Kia', 'Subaru', 'Mazda', 'Jeep', 'Rivian', 'Lucid']
+temp_urls = ['https://www.facebook.com/marketplace/baltimore/search?query=', 'https://www.facebook.com/marketplace/boston/search?query=']
 for i in range(0):
     r_string = ''.join(random.choice(string.ascii_letters) for _ in range(random.randint(2, 5)))
-    url = random.choice(temp_urls) + 'car' + ' ' + r_string
+    url = random.choice(temp_urls) + 'smartcar' + r_string
     text = scraper.get_raw_text(url)
-    
     soup = BeautifulSoup(text, 'html.parser')
-    for i in [d.get('NAME') for d in extract.get_products_car_schema2(text)]:
-        if ctr > 213:
+    for i in [d.get('NAME') for d in extract.get_products_car(text, type='FACEBOOK')]:
+        if ctr > 10:
             break
         if i not in existing_products and len(i) < 30 and len(i) > 10 and 'yes' in gpt.request(i).lower():
             print(i)
             print('------------------------------')
             new_p.write('{}\n'.format(i.lower()))
             ctr += 1
-#exit()
+            time.sleep(0.1)
+            new_p.flush()
+
 p_file = open(file_prefix + 'products.txt', 'r', encoding='utf-8')
 p_lines = p_file.readlines()
 products = []
@@ -71,7 +81,7 @@ l_lines = l.readlines()
 locations = {}
 for l in range(len(l_lines)):
     l_parse = re.search(r'^(.*),(.*)', l_lines[l])
-    locations[l_parse.group(1)] = l_parse.group(2)
+    locations[l_parse.group(1)] = l_parse.group(2).split(' ')
     
 file_path = file_prefix + 'data/' + str(date.today()) + '.csv'
 newfile = False
@@ -80,7 +90,7 @@ if not os.path.isfile(file_path):
     f.close()
     newfile = True
 csv_file = open(file_path, 'r+', newline='', encoding='utf-8')
-csv_writer_dict = csv.DictWriter(csv_file, fieldnames=['NAME', 'YEAR', 'PRICE', 'MILES'])
+csv_writer_dict = csv.DictWriter(csv_file, fieldnames=['NAME', 'MAKE', 'MODEL', 'YEAR', 'TYPE', 'COLOR', 'INTCOLOR', 'MILES', 'PRICE', 'SOURCE'])
 csv_writer_list = csv.writer(csv_file)
 if newfile:
     csv_writer_dict.writeheader()
@@ -97,20 +107,34 @@ for product in products:
         print(str((ctr / len(p_lines)) * 100)[0:5] + '%', flush=True)
     print(str(datetime.now())[0:19], flush=True)
     for location in locations.keys():
-        url = 'https://www.facebook.com/marketplace/' + locations[location].strip() + '/search?query=' + product.replace(' ', '%20')
+        
+        url = 'https://www.autotrader.com/cars-for-sale/all-cars/toyota/camry/clarksville-md??firstRecord=0&zip=21044'
+
+        text = scraper.get_raw_text(url, True)
+        print(text)
+        print(extract.get_products_car(text, 'AUTOTRADER'))
+        with open('re.txt', 'w') as f:
+            f.write(text)
+        exit()
+
+        url = 'https://www.facebook.com/marketplace/' + locations[location][0].strip() + '/search?query=' + product.replace(' ', '%20')
+        
     
         text = scraper.get_raw_text(url)
-
+        
         if len(text) < 30:
             p_err_ctr += 1
             if p_err_ctr > 15:
                 raise Exception("PROXY: Proxy is not working.")
         else:
             p_err_ctr = 0
-        get_products = extract.get_products_car_schema2(text)
 
-        if not average:
+        get_products = extract.get_products_car(text, type='FACEBOOK')
+        print(get_products)
+        
+        if not get_products:
             err_ctr +=1
+            continue
         else:
             err_ctr = 0
 
@@ -120,41 +144,41 @@ for product in products:
             print("-BACKUP-")
             get_products = extract.get_products_car_schema1(text)
         else:
-            get_products = extract.get_products_car_schema2(text)
+            get_products = extract.get_products_car(text, type='FACEBOOK')
 
-        average = 0
-        for get_product in get_products:
-            if get_product['PRICE'] > 0:
-                average += get_product['PRICE']
-        if len(get_products) != 0:
-            average /= len(get_products)
-        average = round(average, 2)
-
-        for get_product in get_products:
-            if get_product['PRICE'] > 0:
-                price = get_product['PRICE']
-                if price < 0.25 * average or price > 4.0 * average:
-                    get_product['PRICE'] = -2
-                    get_products.remove(get_product)
-        average = 0
-        for get_product in get_products:
-            if get_product['PRICE'] > 0:
-                average += get_product['PRICE']
-        if len(get_products) != 0:
-            average /= len(get_products)
-        average = round(average, 2)
+        median = statistics.median([d['PRICE'] for d in get_products])
+        get_products = [d for d in get_products if d['PRICE'] > 0.25 * median and d['PRICE'] < 3.0 * median]
+        average = round(sum([d['PRICE'] for d in get_products]), 2)
         
-        csv_reader = csv.reader((line.replace('\0', '') for line in csv_file))
+        csv_reader = csv.reader((line.replace('\x00', '') for line in csv_file))
         for row in csv_reader:
-            if any('\0' in field for field in row):
-                continue
-            if row == [get_product['NAME'], get_product['YEAR'], get_product['PRICE'], get_product['MILES']]:
-                get_products.remove(get_product)
-        csv_writer_list.writerows([['-', str(product), str(location), str(average)]])
+            for get_product in get_products:
+                if row == [get_product['NAME'], get_product['MAKE'], get_product['MODEL'], get_product['YEAR'], get_product['TYPE'], get_product['COLOR'], get_product['INTCOLOR'], get_product['MILES'], get_product['PRICE'], get_product['SOURCE']:
+                    get_products.remove(get_product)
+        csv_writer_list.writerows([['-', str(product), str(location), str(average), '-', '-', '-', '-', '-']])
         csv_writer_dict.writerows(get_products)
         csv_file.flush()
         
 csv_file.close()
+
+# input_csv =get_product['./data/2024-02-23.csv'
+# output_csv = './data/2024-02-23 cleaned.csv'
+
+# with open(input_csv, 'r', newline='', encoding='utf-8') as infile:
+#     reader = csv.reader(infile)
+
+#     # Open the output CSV file
+#     with open(output_csv, 'w', newline='', encoding='utf-8') as outfile:
+#         writer = csv.writer(outfile)
+
+#         # Iterate over rows in the input CSV file
+#         for row in reader:
+#             # Remove null characters from each field in the row
+#             cleaned_row = [field.replace('\x00', '') for field in row]
+
+#             # Write the cleaned row to the output CSV file
+#             writer.writerow(cleaned_row)
+
 if PYTHONANYWHERE:
     with open(file_prefix + 'track.txt', 'w', encoding='utf-8') as t:
         t.write(str(date.today()))
