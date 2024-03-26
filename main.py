@@ -25,6 +25,7 @@ PYTHONANYWHERE = False
 #   DONE ISSUE: Data is not clean (averages)
 #   ISSUE: Need new csv divider, old one confusing city name, state name
 #   Add more datasource: cars.com, carfax.com, carmax.com, carvana.com
+#   Filter cars based on new, used, etc.
 
 csv.field_size_limit(sys.maxsize)
 # Open the input CSV file
@@ -96,70 +97,71 @@ if newfile:
     csv_writer_dict.writeheader()
     print("FILE: New file created.")
 
-average = 1
+median = 1
 ctr = 0
 err_ctr = 0
 p_err_ctr = 0
+page = 0
 
-for product in products:
-    ctr += 1
-    if average:
-        print(str((ctr / len(p_lines)) * 100)[0:5] + '%', flush=True)
-    print(str(datetime.now())[0:19], flush=True)
-    for location in locations.keys():
-        
-        url = 'https://www.autotrader.com/cars-for-sale/all-cars/toyota/camry/clarksville-md??firstRecord=0&zip=21044'
+sources = ['AUTOTRADER', 'FACEBOOK', ]
 
-        text = scraper.get_raw_text(url, True)
-        print(text)
-        print(extract.get_products_car(text, 'AUTOTRADER'))
-        with open('re.txt', 'w') as f:
-            f.write(text)
-        exit()
+for source in sources:
+    for product in products:
+        ctr += 1
+        if median:
+            print(str((ctr / len(p_lines)) * 100)[0:5] + '%', flush=True)
+        print(str(datetime.now())[0:19], flush=True)
+        for location in locations.keys():
 
-        url = 'https://www.facebook.com/marketplace/' + locations[location][0].strip() + '/search?query=' + product.replace(' ', '%20')
-        
-    
-        text = scraper.get_raw_text(url)
-        
-        if len(text) < 30:
-            p_err_ctr += 1
-            if p_err_ctr > 15:
-                raise Exception("PROXY: Proxy is not working.")
-        else:
-            p_err_ctr = 0
+            # can get multiple pages with value firstRecord=50*page#
+            # url = 'https://www.autotrader.com/cars-for-sale/all-cars/toyota/camry/washington-dc?firstRecord=200&newSearch=false&numRecords=100&zip=21029'
 
-        get_products = extract.get_products_car(text, type='FACEBOOK')
-        print(get_products)
-        
-        if not get_products:
-            err_ctr +=1
-            continue
-        else:
-            err_ctr = 0
+            # text = scraper.get_raw_text(url, True)
+            # print(text)
+            # print(extract.get_products_car(text, 'AUTOTRADER'))
+            
+            url = 'https://www.facebook.com/marketplace/' + locations[location][0].strip() + '/search?query=' + product.replace(' ', '%20')
+            text = scraper.get_raw_text(url)
+            # elif source == 'AUTOTRADER':
+            #     for i in range(0, 100, 100):
+            #         url = 'https://www.autotrader.com/cars-for-sale/all-cars/' + product.replace(' ', '/') + '/washington-dc?firstRecord=' + str(i) + '&newSearch=false&numRecords=100&zip=' + locations[location][1].strip()
+            #         text += scraper.get_raw_text(url)
+            #         if 'No more results found within 50 miles.' in text:
+            #             break
+            
+            if len(text) < 30:
+                p_err_ctr += 1
+                if p_err_ctr > 15:
+                    raise Exception("PROXY: Proxy is not working.")
+            else:
+                p_err_ctr = 0
 
-        if err_ctr > 150:
-            raise Exception("EXTRACT: Extract thwarted.")
-        elif err_ctr > 75:
-            print("-BACKUP-")
-            get_products = extract.get_products_car_schema1(text)
-        else:
-            get_products = extract.get_products_car(text, type='FACEBOOK')
+            get_products = extract.get_products_car(text, source)
+            print(get_products)
+            
+            if not get_products:
+                err_ctr +=1
+                continue
+            else:
+                err_ctr = 0
 
-        median = statistics.median([d['PRICE'] for d in get_products])
-        get_products = [d for d in get_products if d['PRICE'] > 0.25 * median and d['PRICE'] < 3.0 * median]
-        average = round(sum([d['PRICE'] for d in get_products]), 2)
-        
-        csv_reader = csv.reader((line.replace('\x00', '') for line in csv_file))
-        for row in csv_reader:
-            for get_product in get_products:
-                if row == [get_product['NAME'], get_product['MAKE'], get_product['MODEL'], get_product['YEAR'], get_product['TYPE'], get_product['COLOR'], get_product['INTCOLOR'], get_product['MILES'], get_product['PRICE'], get_product['SOURCE']:
-                    get_products.remove(get_product)
-        csv_writer_list.writerows([['-', str(product), str(location), str(average), '-', '-', '-', '-', '-']])
-        csv_writer_dict.writerows(get_products)
-        csv_file.flush()
-        
-csv_file.close()
+            if err_ctr > 75:
+                raise Exception("EXTRACT: Extract thwarted.")
+
+            median = statistics.median([d['PRICE'] for d in get_products])
+            get_products = [d for d in get_products if d['PRICE'] > 0.25 * median and d['PRICE'] < 3.0 * median]
+            average = round(sum([d['PRICE'] for d in get_products]), 2)
+            
+            csv_reader = csv.reader((line.replace('\x00', '') for line in csv_file))
+            for row in csv_reader:
+                for get_product in get_products:
+                    if row == [get_product['NAME'], get_product['MAKE'], get_product['MODEL'], get_product['YEAR'], get_product['TYPE'], get_product['COLOR'], get_product['INTCOLOR'], get_product['MILES'], get_product['PRICE'], get_product['SOURCE']]:
+                        get_products.remove(get_product)
+            csv_writer_list.writerows([['-', str(product), str(location), str(average), '-', '-', '-', '-', '-']])
+            csv_writer_dict.writerows(get_products)
+            csv_file.flush()
+            
+    csv_file.close()
 
 # input_csv =get_product['./data/2024-02-23.csv'
 # output_csv = './data/2024-02-23 cleaned.csv'
